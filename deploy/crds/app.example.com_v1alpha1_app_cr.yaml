@@ -4,4 +4,19 @@ metadata:
   name: example-app
 spec:
   # Add fields here
-  size: 3
+  replicas: 2
+  image: nginx
+  ports:
+    - containerPort: 80
+  Envs:
+    - name: DEMO
+      value: app
+    - name: GOPATH
+      value: gopath
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100M
+    requests:
+      cpu: 100m
+      memory: 100M
