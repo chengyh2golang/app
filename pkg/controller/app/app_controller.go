@@ -6,15 +6,13 @@ import (
 
 	appv1alpha1 "app/pkg/apis/app/v1alpha1"
 
-	corev1 "k8s.io/api/core/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -116,6 +114,9 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	if err := r.client.Get(context.TODO(), request.NamespacedName, deploy);err != nil &&
 		errors.IsNotFound(err) {
 		//TODO 创建关联资源
+		//创建deployment和service
+
+
 
 	} else {
 		//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中

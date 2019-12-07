@@ -17,6 +17,7 @@ type AppSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	Replicas *int32 `json:"replicas"`
 	Image string `json:"image"`
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 	Envs []corev1.EnvVar `json:"envs,omitempty"`
 	Ports []corev1.ServicePort `json:"ports,omitempty"`
 }
