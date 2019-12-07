@@ -9,7 +9,7 @@ spec:
   ports:
     - targetPort: 80
       port: 8080
-  Envs:
+  envs:
     - name: DEMO
       value: app
     - name: GOPATH
