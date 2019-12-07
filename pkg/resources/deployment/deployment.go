@@ -36,6 +36,9 @@ func New(app *appv1alpha1.App) *appsv1.Deployment {
 			Selector:selector,
 			Replicas:app.Spec.Replicas,
 			Template:corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:labels,
+				},
 				Spec:corev1.PodSpec{
 					Containers:newContainers(app),
 
