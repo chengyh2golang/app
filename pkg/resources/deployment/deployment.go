@@ -23,6 +23,7 @@ func New(app *appv1alpha1.App) *appsv1.Deployment {
 		ObjectMeta:metav1.ObjectMeta{
 			Namespace:app.Namespace,
 			Name:app.Name,
+			Labels:labels,
 			OwnerReferences:[]metav1.OwnerReference{
 				*metav1.NewControllerRef(app, schema.GroupVersionKind{
 					Group:appv1alpha1.SchemeGroupVersion.Group,
