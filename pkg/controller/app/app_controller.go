@@ -2,10 +2,12 @@ package app
 
 import (
 	"context"
+	"reflect"
 
 	appv1alpha1 "app/pkg/apis/app/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -54,7 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner App
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.App{},
 	})
@@ -101,6 +103,46 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
+	if instance.DeletionTimestamp != nil {
+		return reconcile.Result{}, err
+	}
+
+	//TODO 判断App关联资源是否存在
+	//如果不存在，就创建关联资源
+	//如果存在，判断是否需要更新，如果需要更新，执行更新操作，如果不需要更新，正常返回
+
+	deploy := &appsv1.Deployment{}
+	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
+	if err := r.client.Get(context.TODO(), request.NamespacedName, deploy);err != nil &&
+		errors.IsNotFound(err) {
+		//TODO 创建关联资源
+
+	} else {
+		//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中
+		//下一次再重新处理
+		//只要是这个err是非nil的，deploy := &appsv1.Deployment{}这条记录就会被重新扔到缓存队列当中
+		//等到下一次同步周期到来的时候再去处理
+		return reconcile.Result{}, err
+	}
+
+	//判断是否需要更新，就是去比较新的spec和旧的spec是否一致，
+	//如果一致就不需要更新，如果不一致，就需要更新。
+
+	//先定义老的spec
+	oldSpec := appv1alpha1.AppSpec{}
+
+	//上面已经拿到instance之后，就可以比较oldspec和instance的spec是否一致
+	//这里使用的是reflect.DeepEqual这个方法
+	//如果不一致，就需要更新
+	if !reflect.DeepEqual(instance,oldSpec) {
+		//TODO 更新关联资源
+	}
+
+	return reconcile.Result{}, nil
+
+
+
+	/*
 	// Define a new Pod object
 	pod := newPodForCR(instance)
 
@@ -128,6 +170,7 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	// Pod already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
 	return reconcile.Result{}, nil
+	*/
 }
 
 // newPodForCR returns a busybox pod with the same name/namespace as the cr
