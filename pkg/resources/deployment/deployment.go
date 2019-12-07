@@ -5,10 +5,17 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func New(app *appv1alpha1.App) appsv1.Deployment {
-	return appsv1.Deployment{
+func New(app *appv1alpha1.App) *appsv1.Deployment {
+	labels := map[string]string{
+		"app.example.com/v1alpha1":app.Name,
+	}
+	selector := &metav1.LabelSelector{
+		MatchLabels:labels,
+	}
+	return &appsv1.Deployment{
 		TypeMeta:metav1.TypeMeta{
 			APIVersion:"apps/v1",
 			Kind:"Deployment",
@@ -16,8 +23,16 @@ func New(app *appv1alpha1.App) appsv1.Deployment {
 		ObjectMeta:metav1.ObjectMeta{
 			Namespace:app.Namespace,
 			Name:app.Name,
+			OwnerReferences:[]metav1.OwnerReference{
+				*metav1.NewControllerRef(app, schema.GroupVersionKind{
+					Group:appv1alpha1.SchemeGroupVersion.Group,
+					Version:appv1alpha1.SchemeGroupVersion.Version,
+					Kind:"App",
+				}),
+			},
 		},
 		Spec:appsv1.DeploymentSpec{
+			Selector:selector,
 			Replicas:app.Spec.Replicas,
 			Template:corev1.PodTemplateSpec{
 				Spec:corev1.PodSpec{

@@ -5,6 +5,8 @@ import (
 	"reflect"
 
 	appv1alpha1 "app/pkg/apis/app/v1alpha1"
+	"app/pkg/resources/deployment"
+	"app/pkg/resources/service"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -109,14 +111,24 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	//如果不存在，就创建关联资源
 	//如果存在，判断是否需要更新，如果需要更新，执行更新操作，如果不需要更新，正常返回
 
+
 	deploy := &appsv1.Deployment{}
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
 	if err := r.client.Get(context.TODO(), request.NamespacedName, deploy);err != nil &&
 		errors.IsNotFound(err) {
 		//TODO 创建关联资源
 		//创建deployment和service
+		deploy := deployment.New(instance)
+		err := r.client.Create(context.TODO(), deploy)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 
-
+		svc := service.New(instance)
+		err = r.client.Create(context.TODO(), svc)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
 
 	} else {
 		//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中
