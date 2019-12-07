@@ -1,12 +1,11 @@
 package app
 
 import (
-	"context"
-	"reflect"
-
 	appv1alpha1 "app/pkg/apis/app/v1alpha1"
 	"app/pkg/resources/deployment"
 	"app/pkg/resources/service"
+	"context"
+	"encoding/json"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -107,16 +106,15 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	//TODO 判断App关联资源是否存在
+	// 判断App关联资源是否存在
 	//如果不存在，就创建关联资源
 	//如果存在，判断是否需要更新，如果需要更新，执行更新操作，如果不需要更新，正常返回
 
 
 	deploy := &appsv1.Deployment{}
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
-	if err := r.client.Get(context.TODO(), request.NamespacedName, deploy);err != nil &&
-		errors.IsNotFound(err) {
-		//TODO 创建关联资源
+	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
+	if err != nil && errors.IsNotFound(err) {
 		//创建deployment和service
 		deploy := deployment.New(instance)
 		err := r.client.Create(context.TODO(), deploy)
@@ -130,6 +128,21 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			return reconcile.Result{}, err
 		}
 
+		data, _ := json.Marshal(instance.Spec)
+		if instance.Annotations != nil {
+			instance.Annotations["spec"]=string(data)
+		} else {
+			instance.Annotations = map[string]string{"spec":string(data)}
+		}
+
+		err = r.client.Update(context.TODO(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+
+		//如果deployment和service都创建成功就return
+		return reconcile.Result{},nil
+
 	} else {
 		//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中
 		//下一次再重新处理
@@ -142,7 +155,11 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	//如果一致就不需要更新，如果不一致，就需要更新。
 
 	//先定义老的spec
+	/*
 	oldSpec := appv1alpha1.AppSpec{}
+
+	err = json.Unmarshal([]byte(instance.Annotations["spec"]), &oldSpec)
+
 
 	//上面已经拿到instance之后，就可以比较oldspec和instance的spec是否一致
 	//这里使用的是reflect.DeepEqual这个方法
@@ -152,6 +169,7 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	}
 
 	return reconcile.Result{}, nil
+	*/
 
 
 
