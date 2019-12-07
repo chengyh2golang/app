@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d2fea78c-716d-411b-bfd4-3c7d07bd0af0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/deploy/crds/app.example.com_v1alpha1_app_cr.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/crds/app.example.com_v1alpha1_app_cr.yaml" afterDir="false" />
-    </list>
+    <list default="true" id="d2fea78c-716d-411b-bfd4-3c7d07bd0af0" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +63,7 @@
       <workItem from="1575689988892" duration="998000" />
       <workItem from="1575691276025" duration="4836000" />
       <workItem from="1575700129402" duration="10104000" />
-      <workItem from="1575729241490" duration="5917000" />
+      <workItem from="1575729241490" duration="6334000" />
     </task>
     <servers />
   </component>

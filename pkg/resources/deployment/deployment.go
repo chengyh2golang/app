@@ -60,6 +60,7 @@ func newContainers(app *appv1alpha1.App) []corev1.Container {
 		{
 			Name:app.Name,
 			Image:app.Spec.Image,
+			ImagePullPolicy:corev1.PullIfNotPresent,
 			//Args:[]string{"--bind_ip_all","--replSet=rs0","--keyFile=/etc/mongo/default-key"},
 			Resources:app.Spec.Resources,
 			Ports:containerPort,
