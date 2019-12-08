@@ -192,14 +192,19 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 
 		newSvc := service.New(instance)
+
+
 		oldSvc := &corev1.Service{}
 		if err := r.client.Get(context.TODO(), request.NamespacedName, oldSvc); err != nil {
 			//不管err是什么错误，只要拿不到old service，就返回，等待下次处理
 			return reconcile.Result{}, err
 		}
 
+		oldSvcClusterIp := oldSvc.Spec.ClusterIP
+
 		//拿到oldDeploy之后，一定是把newSvc.spec 赋值给 oldSvc.spec
 		oldSvc.Spec = newSvc.Spec
+		oldSvc.Spec.ClusterIP = oldSvcClusterIp
 
 		//这样设置之后，再去更新oldSvc，这样才能规避k8s中丢失数据一致性
 		err = r.client.Update(context.TODO(), oldSvc)

@@ -50,11 +50,11 @@ func New(app *appv1alpha1.App) *appsv1.Deployment {
 }
 
 func newContainers(app *appv1alpha1.App) []corev1.Container {
-	containerPort := []corev1.ContainerPort{}
+	var containerPort []corev1.ContainerPort
 	for _,servicePort := range app.Spec.Ports {
-		cport := corev1.ContainerPort{}
-		cport.ContainerPort = servicePort.TargetPort.IntVal
-		containerPort = append(containerPort,cport)
+		cPort := corev1.ContainerPort{}
+		cPort.ContainerPort = servicePort.TargetPort.IntVal
+		containerPort = append(containerPort,cPort)
 	}
 	return []corev1.Container{
 		{

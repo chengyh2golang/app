@@ -4,6 +4,7 @@
     <list default="true" id="d2fea78c-716d-411b-bfd4-3c7d07bd0af0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/controller/app/app_controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/controller/app/app_controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resources/deployment/deployment.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resources/deployment/deployment.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
