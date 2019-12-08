@@ -130,6 +130,7 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			}
 
 			//创建service
+			fmt.Println("创建service")
 			svc := service.New(instance)
 			err = r.client.Create(context.TODO(), svc)
 			if err != nil {
@@ -144,10 +145,12 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			}
 
 			//更新instance
+			fmt.Println("更新instance")
 			err = r.client.Update(context.TODO(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
+			fmt.Println("更新instance之后")
 
 			//如果deployment和service都创建成功就return
 			return reconcile.Result{}, nil
