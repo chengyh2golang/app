@@ -119,6 +119,7 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	deploy := &appsv1.Deployment{}
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
 	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
+	fmt.Printf("deployment is :%v",deploy)
 	if err != nil {
 		fmt.Println(err)
 		if errors.IsNotFound(err) {
