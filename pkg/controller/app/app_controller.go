@@ -6,7 +6,6 @@ import (
 	"app/pkg/resources/service"
 	"context"
 	"encoding/json"
-	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -92,7 +91,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	// Fetch the App instance
 	instance := &appv1alpha1.App{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
-	fmt.Printf("instance is :%v",instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -117,7 +115,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
 	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
 	if err != nil {
-		fmt.Println(err)
 		if errors.IsNotFound(err) {
 
 			//创建deployment和service
