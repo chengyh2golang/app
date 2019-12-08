@@ -7,14 +7,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"time"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -92,7 +90,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	reqLogger.Info("Reconciling App")
 
 	// Fetch the App instance
-	fmt.Println("获取instance")
 	instance := &appv1alpha1.App{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	fmt.Printf("instance is :%v",instance)
@@ -101,7 +98,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			fmt.Println("没有发现instance")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -120,12 +116,10 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	deploy := &appsv1.Deployment{}
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
 	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
-	fmt.Printf("deployment is :%v",deploy)
 	if err != nil {
 		fmt.Println(err)
 		if errors.IsNotFound(err) {
 
-			fmt.Println("Deployment不存在，准备创建deployment")
 			//创建deployment和service
 
 			//创建deployment
@@ -136,7 +130,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			}
 
 			//创建service
-			fmt.Println("创建service")
 			svc := service.New(instance)
 			err = r.client.Create(context.TODO(), svc)
 			if err != nil {
@@ -151,14 +144,10 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			}
 
 			//更新instance
-			fmt.Println("更新instance")
 			err = r.client.Update(context.TODO(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
 			}
-			fmt.Println("更新instance之后")
-
-			time.Sleep(time.Second * 10)
 
 			//如果deployment和service都创建成功就return
 			return reconcile.Result{}, nil
@@ -189,7 +178,6 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	//如果不一致，就需要更新
 	if ! reflect.DeepEqual(instance.Spec,oldSpec) {
 		//更新关联资源
-		fmt.Printf("进入更新逻辑")
 		newDeploy := deployment.New(instance)
 		oldDeploy := &appsv1.Deployment{}
 		if err := r.client.Get(context.TODO(), request.NamespacedName, oldDeploy); err != nil {
