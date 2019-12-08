@@ -6,6 +6,7 @@ import (
 	"app/pkg/resources/service"
 	"context"
 	"encoding/json"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -114,64 +115,100 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	deploy := &appsv1.Deployment{}
 	//如果error不等于nil，并且err是IsNotFound，说明这个deploy不存在，就需要创建它
 	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
-	if err != nil && errors.IsNotFound(err) {
-		//创建deployment和service
-		deploy := deployment.New(instance)
-		err := r.client.Create(context.TODO(), deploy)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
+	if err != nil {
+		if errors.IsNotFound(err) {
+			//创建deployment和service
 
-		svc := service.New(instance)
-		err = r.client.Create(context.TODO(), svc)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
+			//创建deployment
+			deploy := deployment.New(instance)
+			err := r.client.Create(context.TODO(), deploy)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
 
-		data, _ := json.Marshal(instance.Spec)
-		if instance.Annotations != nil {
-			instance.Annotations["spec"]=string(data)
+			//创建service
+			svc := service.New(instance)
+			err = r.client.Create(context.TODO(), svc)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+
+			data, _ := json.Marshal(instance.Spec)
+			if instance.Annotations != nil {
+				instance.Annotations["spec"] = string(data)
+			} else {
+				instance.Annotations = map[string]string{"spec": string(data)}
+			}
+
+			//更新instance
+			err = r.client.Update(context.TODO(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+
+			//如果deployment和service都创建成功就return
+			return reconcile.Result{}, nil
+
 		} else {
-			instance.Annotations = map[string]string{"spec":string(data)}
-		}
-
-		err = r.client.Update(context.TODO(), instance)
-		if err != nil {
+			//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中
+			//下一次再重新处理
+			//只要是这个err是非nil的，deploy := &appsv1.Deployment{}这条记录就会被重新扔到缓存队列当中
+			//等到下一次同步周期到来的时候再去处理
 			return reconcile.Result{}, err
 		}
-
-		//如果deployment和service都创建成功就return
-		return reconcile.Result{},nil
-
-	} else {
-		//说明获取deployment都已经出错了，那么这一次同步就出错了，需要把这个数据扔回给缓存队列当中
-		//下一次再重新处理
-		//只要是这个err是非nil的，deploy := &appsv1.Deployment{}这条记录就会被重新扔到缓存队列当中
-		//等到下一次同步周期到来的时候再去处理
-		return reconcile.Result{}, err
 	}
 
+	//走到这，意味着if err == nil，说明拿到了deployment，就需要判断它是否需要更新
 	//判断是否需要更新，就是去比较新的spec和旧的spec是否一致，
 	//如果一致就不需要更新，如果不一致，就需要更新。
 
 	//先定义老的spec
-	/*
 	oldSpec := appv1alpha1.AppSpec{}
 
 	err = json.Unmarshal([]byte(instance.Annotations["spec"]), &oldSpec)
-
+	if err != nil {
+		return reconcile.Result{}, err
+	}
 
 	//上面已经拿到instance之后，就可以比较oldspec和instance的spec是否一致
 	//这里使用的是reflect.DeepEqual这个方法
 	//如果不一致，就需要更新
-	if !reflect.DeepEqual(instance,oldSpec) {
-		//TODO 更新关联资源
+	if ! reflect.DeepEqual(instance.Spec,oldSpec) {
+		//更新关联资源
+		newDeploy := deployment.New(instance)
+		oldDeploy := &appsv1.Deployment{}
+		if err := r.client.Get(context.TODO(), request.NamespacedName, oldDeploy); err != nil {
+			//不管err是什么错误，只要拿不到old deployment，就返回，等待下次处理
+			return reconcile.Result{}, err
+		}
+
+		//拿到oldDeploy之后，一定是把newDeploy.spec 赋值给 oldDeploy.spec
+		oldDeploy.Spec = newDeploy.Spec
+
+		//这样设置之后，再去更新oldDeploy，这样才能规避k8s中丢失数据一致性
+		err = r.client.Update(context.TODO(), oldDeploy)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+
+		newSvc := service.New(instance)
+		oldSvc := &corev1.Service{}
+		if err := r.client.Get(context.TODO(), request.NamespacedName, oldSvc); err != nil {
+			//不管err是什么错误，只要拿不到old service，就返回，等待下次处理
+			return reconcile.Result{}, err
+		}
+
+		//拿到oldDeploy之后，一定是把newSvc.spec 赋值给 oldSvc.spec
+		oldSvc.Spec = newSvc.Spec
+
+		//这样设置之后，再去更新oldSvc，这样才能规避k8s中丢失数据一致性
+		err = r.client.Update(context.TODO(), oldSvc)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
 	}
-
 	return reconcile.Result{}, nil
-	*/
-
-
 
 	/*
 	// Define a new Pod object
