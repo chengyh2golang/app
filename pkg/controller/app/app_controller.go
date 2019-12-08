@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -156,6 +157,8 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 				return reconcile.Result{}, err
 			}
 			fmt.Println("更新instance之后")
+
+			time.Sleep(time.Second * 10)
 
 			//如果deployment和service都创建成功就return
 			return reconcile.Result{}, nil
