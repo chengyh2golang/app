@@ -6,11 +6,13 @@ import (
 	"app/pkg/resources/service"
 	"context"
 	"encoding/json"
+	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -141,10 +143,17 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			}
 
 			//更新instance
+			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				return r.client.Update(context.TODO(), instance)
+			})
+			if retryErr != nil {
+				fmt.Println(retryErr.Error())
+			}
+			/*
 			err = r.client.Update(context.TODO(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
-			}
+			}*/
 
 			//如果deployment和service都创建成功就return
 			return reconcile.Result{}, nil
