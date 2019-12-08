@@ -91,13 +91,16 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	reqLogger.Info("Reconciling App")
 
 	// Fetch the App instance
+	fmt.Println("获取instance")
 	instance := &appv1alpha1.App{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	fmt.Printf("instance is :%v",instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
+			fmt.Println("没有发现instance")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -181,6 +184,7 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	//如果不一致，就需要更新
 	if ! reflect.DeepEqual(instance.Spec,oldSpec) {
 		//更新关联资源
+		fmt.Printf("进入更新逻辑")
 		newDeploy := deployment.New(instance)
 		oldDeploy := &appsv1.Deployment{}
 		if err := r.client.Get(context.TODO(), request.NamespacedName, oldDeploy); err != nil {
