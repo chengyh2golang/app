@@ -6,6 +6,7 @@ import (
 	"app/pkg/resources/service"
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -117,6 +118,8 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 	err = r.client.Get(context.TODO(), request.NamespacedName, deploy)
 	if err != nil {
 		if errors.IsNotFound(err) {
+
+			fmt.Println("Deployment不存在，准备创建deployment")
 			//创建deployment和service
 
 			//创建deployment
