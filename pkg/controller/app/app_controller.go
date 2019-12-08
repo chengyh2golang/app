@@ -200,10 +200,15 @@ func (r *ReconcileApp) Reconcile(request reconcile.Request) (reconcile.Result, e
 			return reconcile.Result{}, err
 		}
 
+		//把serivce的ClusterIP记录下来
 		oldSvcClusterIp := oldSvc.Spec.ClusterIP
 
 		//拿到oldDeploy之后，一定是把newSvc.spec 赋值给 oldSvc.spec
 		oldSvc.Spec = newSvc.Spec
+
+		//保持ClusterIP不变，还是使用之前的ClusterIP，否则会出现报错，报clusterIP是不可更改的
+		//报错信息："error":"Service \"example-app\" is invalid:
+		// spec.clusterIP: Invalid value: \"\": field is immutable"
 		oldSvc.Spec.ClusterIP = oldSvcClusterIp
 
 		//这样设置之后，再去更新oldSvc，这样才能规避k8s中丢失数据一致性
